@@ -301,7 +301,7 @@ def Detection_of_disc(image,fov,sigma,size_of_erosion):
     center_new.append(r)
     return center_new
     
-def Crop_image(image,output_image_size,center_new): 
+def Crop_image(image,mask_disc,mask_cup,output_image_size,center_new): 
     size_in_img=image.shape
     x_half=int(output_image_size[0]/2)
     y_half=int(output_image_size[1]/2)  
@@ -321,7 +321,9 @@ def Crop_image(image,output_image_size,center_new):
         y_start=center_new[0]-y_half
     
     output_crop_image=image[x_start:x_start+output_image_size[0],y_start:y_start+output_image_size[1],:]
-    return output_crop_image
+    output_mask_disc=mask_disc[x_start:x_start+output_image_size[0],y_start:y_start+output_image_size[1]]
+    output_mask_cup=mask_cup[x_start:x_start+output_image_size[0],y_start:y_start+output_image_size[1]]
+    return output_crop_image, output_mask_disc,output_mask_cup
     
 
 
