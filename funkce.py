@@ -14,7 +14,8 @@ import torch.nn.functional as F
 import glob
 from skimage.io import imread
 from skimage.color import rgb2gray,rgb2hsv,rgb2xyz
-from skimage.morphology import erosion, disc
+from skimage.morphology import binary_erosion, disk
+from skimage.filters import gaussian
 import torchvision.transforms.functional as TF
 from torch.nn import init
 import matplotlib.pyplot as plt
@@ -270,12 +271,57 @@ def Specificity (X,Y):
     specificity = TN/(TN+FP)
     return specificity
 
-def Detection_of_disc(image,fov,sigma,size_of_erosion):
+def Detection_of_disc(image,fov,sigma,size_of_erosion):    
     img=rgb2xyz(image).astype(np.float32)
     img=rgb2gray(img).astype(np.float32)
+    #plt.imshow(fov)
+    BW=binary_erosion(fov,disk(size_of_erosion))
+    #plt.imshow(BW)
+    #%%
+    vertical_len=BW.shape[0]
+    step=round(vertical_len/15);
+    BW[0:step,:]=0;
+    BW[vertical_len-step:vertical_len,:]=0;
+    #plt.imshow(BW)
     
-    BW=erosion(fov,disc(size_of_erosion))
+    #%%
+    #plt.imshow(img)
+    img[~BW]=0;
+    #plt.imshow(img)
+    #%%
+    img_filt=gaussian(img,sigma);
+    img_filt[~BW]=0;
+    #plt.imshow(img_filt)
+    #%%
+    max_xy = np.where(img_filt == img_filt.max() )
+    r=max_xy[0][0]
+    c=max_xy[1][0]
+    center_new=[]
+    center_new.append(c)
+    center_new.append(r)
+    return center_new
     
+def Crop_image(image,output_image_size,center_new): 
+    size_in_img=image.shape
+    x_half=int(output_image_size[0]/2)
+    y_half=int(output_image_size[1]/2)  
+    
+    if ((center_new[1]-x_half)<0):
+        x_start=0
+    elif ((center_new[1]+x_half)>size_in_img[0]):
+        x_start=size_in_img[0]-output_image_size[0]
+    else:
+        x_start=center_new[1]-x_half        
+    
+    if ((center_new[0]-y_half)<0):
+        y_start=0
+    elif ((center_new[0]+y_half)>size_in_img[1]):
+        y_start=size_in_img[1]-output_image_size[1]
+    else:
+        y_start=center_new[0]-y_half
+    
+    output_crop_image=image[x_start:x_start+output_image_size[0],y_start:y_start+output_image_size[1],:]
+    return output_crop_image
     
 
 

@@ -11,7 +11,7 @@ from skimage.color import rgb2gray,rgb2hsv,rgb2xyz
 from skimage.morphology import binary_erosion, disk
 from skimage.filters import gaussian
 import matplotlib.pyplot as plt
-
+from funkce import Detection_of_disc
 
 if __name__ == "__main__": 
     image=imread('D:\Diploma_thesis_segmentation_disc\Drishti-GS\Images\drishti_test_na_001.png')
@@ -48,6 +48,77 @@ if __name__ == "__main__":
     center_new=[]
     center_new.append(c)
     center_new.append(r)
+    
+    #%%
+    center_new=[]
+    center_new=Detection_of_disc(image,fov,sigma,size_of_erosion)
+    
+    #%%
+    plt.figure()
+    plt.imshow(image)
+    plt.stem(center_new[0],center_new[1])
+    plt.show()
+    
+    #%% Crop image with disc
+    output_image_size=[1024,1024]
+    size_in_img=image.shape
+    x_half=int(output_image_size[0]/2)
+    y_half=int(output_image_size[1]/2)
+    
+    
+    if ((center_new[1]-x_half)<0):
+        x_start=0
+    elif ((center_new[1]+x_half)>size_in_img[0]):
+        x_start=size_in_img[0]-output_image_size[0]
+    else:
+        x_start=center_new[1]-x_half
+            
+        
+    
+    if ((center_new[0]-y_half)<0):
+        y_start=0
+    elif ((center_new[0]+y_half)>size_in_img[1]):
+        y_start=size_in_img[1]-output_image_size[1]
+    else:
+        y_start=center_new[0]-y_half
+    
+    output_crop_image=image[x_start:x_start+output_image_size[0],y_start:y_start+output_image_size[1],:]
+    
+    plt.figure()
+    plt.imshow(output_crop_image)
+    plt.show()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
