@@ -14,6 +14,7 @@ import torch.nn.functional as F
 import glob
 from skimage.io import imread
 from skimage.color import rgb2gray,rgb2hsv,rgb2xyz
+from skimage.morphology import erosion, disc
 import torchvision.transforms.functional as TF
 from torch.nn import init
 import matplotlib.pyplot as plt
@@ -268,3 +269,14 @@ def Specificity (X,Y):
     FP=np.sum(np.logical_and(np.logical_not(X),Y))
     specificity = TN/(TN+FP)
     return specificity
+
+def Detection_of_disc(image,fov,sigma,size_of_erosion):
+    img=rgb2xyz(image).astype(np.float32)
+    img=rgb2gray(img).astype(np.float32)
+    
+    BW=erosion(fov,disc(size_of_erosion))
+    
+    
+
+
+
