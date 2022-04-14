@@ -14,7 +14,8 @@ import torch.nn.functional as F
 import glob
 from skimage.io import imread
 from skimage.color import rgb2gray,rgb2hsv,rgb2xyz
-from skimage.morphology import binary_erosion, disk
+from skimage.morphology import disk
+from skimage.ndimage import binary_erosion 
 from skimage.filters import gaussian
 import torchvision.transforms.functional as TF
 from torch.nn import init

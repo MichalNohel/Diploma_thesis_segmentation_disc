@@ -8,8 +8,11 @@ Created on Mon Mar 21 13:49:43 2022
 import numpy as np
 from skimage.io import imread
 from skimage.color import rgb2gray,rgb2hsv,rgb2xyz
-from skimage.morphology import binary_erosion, disk
+from skimage.morphology import disk
+from scipy.ndimage import binary_erosion 
 from skimage.filters import gaussian
+from scipy.ndimage.morphology import distance_transform_edt
+
 import matplotlib.pyplot as plt
 from funkce import Detection_of_disc, Crop_image
 
