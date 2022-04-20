@@ -23,7 +23,7 @@ if __name__ == "__main__":
     output_image_size=[768,768]
     
     #Drishti_GS       
-    '''
+    
     files_img=glob.glob(path_to_data+'/Drishti-GS/Images/*.png')
     files_mask_disc=glob.glob(path_to_data+'/Drishti-GS/Disc/expert1/*.png')
     files_mask_cup=glob.glob(path_to_data+'/Drishti-GS/Cup/expert1/*.png')
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         
         output_mask_disc=output_mask_disc.astype(bool)
         output_mask_cup=output_mask_cup.astype(bool)
-        
+        '''
         #plt.figure()
         plt.subplot(3,1,1)
         plt.imshow(output_crop_image)
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         plt.subplot(3,1,3)
         plt.imshow(output_mask_cup)
         plt.show()
-        
+        '''
         plt.imsave(path_to_crop_image + files_img[i][61:],output_crop_image)
         plt.imsave(path_to_crop_disc + files_mask_disc[i][59:],output_mask_disc)
         plt.imsave(path_to_crop_cup + files_mask_cup[i][58:],output_mask_cup)
@@ -308,7 +308,7 @@ if __name__ == "__main__":
             plt.imsave(path_to_crop_image + 'Test/' + files_img[i][59:],image)
             plt.imsave(path_to_crop_disc + 'Test/' + files_mask_disc[i][57:],mask_disc)
             plt.imsave(path_to_crop_cup + 'Test/' + files_mask_cup[i][56:],mask_cup)
-    '''
+    
     # UOA-DR - Healthy
     pocet_train=0.8
     

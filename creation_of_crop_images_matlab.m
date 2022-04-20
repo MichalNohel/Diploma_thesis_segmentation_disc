@@ -19,43 +19,62 @@ path_to_crop_image=[path_to_data '/Data_500_500/'];
 
 coordinates_dristi_GS=load('C:\Users\nohel\Desktop\Databaze_final\Drishti-GS\coordinates_dristi_GS.mat');
 coordinates=coordinates_dristi_GS.coordinates_dristi_GS;
-
 num_of_img=length(images_file);
+pom=52; % split to test and train dataset
 
-for i=1:num_of_img
-    %expert 1
-    image=imread([images_file(i).folder '\' images_file(i).name ]);     
-    mask_disc=imread([disc_file(i).folder '\' disc_file(i).name ]);  
-    mask_cup=imread([cup_file(i).folder '\' cup_file(i).name ]);  
-    fov=imread([fov_file(i).folder '\' fov_file(i).name ]);
-    
-    if i>=pom
-        [center_new] = Detection_of_disc(image,fov,sigma,size_of_erosion);
-        if mask_disc(center_new(2),center_new(1))~=1
-            center_new(1)=coordinates(i,1);
-            center_new(2)=coordinates(i,2);
-        end
-        [output_crop_image, output_mask_disc,output_mask_cup]=Crop_image(image,mask_disc,mask_cup,output_image_size,center_new);
-        imwrite(output_crop_image,[path_to_crop_image 'Train\Images_crop\' images_file(i).name])
-        imwrite(output_mask_disc,[path_to_crop_image 'Train\Disc_crop\' disc_file(i).name])
-        imwrite(output_mask_cup,[path_to_crop_image 'Train\Cup_crop\' cup_file(i).name])
-    else
-        imwrite(image,[path_to_crop_image 'Test\Images\' images_file(i).name])
-        imwrite(mask_disc,[path_to_crop_image 'Test\Disc\' disc_file(i).name])
-        imwrite(mask_cup,[path_to_crop_image 'Test\Cup\' cup_file(i).name])
-    end
-end
+creation_of_crop_images(output_image_size,images_file,disc_file,cup_file,fov_file,sigma,size_of_erosion,coordinates,path_to_crop_image,pom)
 
+%% REFUGE_train
+
+images_file = dir([path_to_data '\REFUGE\Images\Train\*.png']);
+disc_file = dir([path_to_data '\REFUGE\Disc\Train\*.png']);
+cup_file = dir([path_to_data '\REFUGE\Cup\Train\*.png']);
+fov_file = dir([path_to_data '\REFUGE\Fov\Train\*.png']);
+path_to_crop_image=[path_to_data '/Data_500_500/'];
+
+
+coordinates_REFUGE_Train=load('C:\Users\nohel\Desktop\Databaze_final\REFUGE\coordinates_REFUGE_Train.mat');
+coordinates=coordinates_REFUGE_Train.coordinates_REFUGE_Train;
+num_of_img=length(images_file);
+pom=0; % split to test and train dataset
 %%
-figure
-imshow(image)
-hold on
-stem(coordinates(i,1),coordinates(i,2),'g','MarkerSize',16,'LineWidth',2)
-stem(center_new(1),center_new(2),'r','MarkerSize',16,'LineWidth',2)
+creation_of_crop_images(output_image_size,images_file,disc_file,cup_file,fov_file,sigma,size_of_erosion,coordinates,path_to_crop_image,pom)
+
+%% REFUGE_Validation
+
+images_file = dir([path_to_data '\REFUGE\Images\Validation\*.png']);
+disc_file = dir([path_to_data '\REFUGE\Disc\Validation\*.png']);
+cup_file = dir([path_to_data '\REFUGE\Cup\Validation\*.png']);
+fov_file = dir([path_to_data '\REFUGE\Fov\Validation\*.png']);
+path_to_crop_image=[path_to_data '/Data_500_500/'];
+
+
+coordinates_REFUGE_Validation=load('C:\Users\nohel\Desktop\Databaze_final\REFUGE\coordinates_REFUGE_Validation.mat');
+coordinates=coordinates_REFUGE_Validation.coordinates_REFUGE_Validation;
+num_of_img=length(images_file);
+pom=0; % split to test and train dataset
+%%
+creation_of_crop_images(output_image_size,images_file,disc_file,cup_file,fov_file,sigma,size_of_erosion,coordinates,path_to_crop_image,pom)
+
+%% REFUGE_Test
+
+images_file = dir([path_to_data '\REFUGE\Images\Test\*.png']);
+disc_file = dir([path_to_data '\REFUGE\Disc\Test\*.png']);
+cup_file = dir([path_to_data '\REFUGE\Cup\Test\*.png']);
+fov_file = dir([path_to_data '\REFUGE\Fov\Test\*.png']);
+path_to_crop_image=[path_to_data '/Data_500_500/'];
+
+
+coordinates_REFUGE_Test=load('C:\Users\nohel\Desktop\Databaze_final\REFUGE\coordinates_REFUGE_Test.mat');
+coordinates=coordinates_REFUGE_Test.coordinates_REFUGE_Test;
+num_of_img=length(images_file);
+pom=401; % split to test and train dataset
+%%
+creation_of_crop_images(output_image_size,images_file,disc_file,cup_file,fov_file,sigma,size_of_erosion,coordinates,path_to_crop_image,pom)
 
 
 
-%% Function
+%% Functions
 function[center_new] = Detection_of_disc(image,fov,sigma,velikost_erodovani)
 image=rgb2xyz(im2double(image));
 image=rgb2gray(image);
@@ -97,6 +116,31 @@ function [output_crop_image, output_mask_disc,output_mask_cup]=Crop_image(image,
     output_mask_cup=mask_cup(x_start:x_start+output_image_size(1)-1,y_start:y_start+output_image_size(2)-1);
 end
 
-
+function []= creation_of_crop_images(output_image_size,images_file,disc_file,cup_file,fov_file,sigma,size_of_erosion,coordinates,path_to_crop_image,pom)
+    num_of_img=length(images_file);
+    for i=1:num_of_img
+        %expert 1
+        image=imread([images_file(i).folder '\' images_file(i).name ]);     
+        mask_disc=imread([disc_file(i).folder '\' disc_file(i).name ]);  
+        mask_cup=imread([cup_file(i).folder '\' cup_file(i).name ]);  
+        fov=imread([fov_file(i).folder '\' fov_file(i).name ]);
+        
+        if i>=pom
+            [center_new] = Detection_of_disc(image,fov,sigma,size_of_erosion);
+            if mask_disc(center_new(2),center_new(1))~=1
+                center_new(1)=coordinates(i,1);
+                center_new(2)=coordinates(i,2);
+            end
+            [output_crop_image, output_mask_disc,output_mask_cup]=Crop_image(image,mask_disc,mask_cup,output_image_size,center_new);
+            imwrite(output_crop_image,[path_to_crop_image 'Train\Images_crop\' images_file(i).name])
+            imwrite(output_mask_disc,[path_to_crop_image 'Train\Disc_crop\' disc_file(i).name])
+            imwrite(output_mask_cup,[path_to_crop_image 'Train\Cup_crop\' cup_file(i).name])
+        else
+            imwrite(image,[path_to_crop_image 'Test\Images\' images_file(i).name])
+            imwrite(mask_disc,[path_to_crop_image 'Test\Disc\' disc_file(i).name])
+            imwrite(mask_cup,[path_to_crop_image 'Test\Cup\' cup_file(i).name])
+        end
+    end
+end
 
     
