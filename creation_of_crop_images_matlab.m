@@ -179,6 +179,36 @@ creation_of_crop_images(output_image_size,images_file,disc_file,cup_file,fov_fil
 % %%
 % creation_of_crop_images(output_image_size,images_file,disc_file,cup_file,fov_file,sigma,size_of_erosion,coordinates,path_to_crop_image,pom)
 
+%% Detection of centres in Test datasets
+clear all
+close all
+clc
+sigma=60;
+size_of_erosion=80;
+test_images_file = dir('D:\Diploma_thesis_segmentation_disc\Data_500_500\Test\Images\*.png');
+test_fov_file = dir('D:\Diploma_thesis_segmentation_disc\Data_500_500\Test\Fov\*.png');
+test_dics_file = dir('D:\Diploma_thesis_segmentation_disc\Data_500_500\Test\Disc\*.png');
+num_of_img=length(test_images_file);
+Disc_centres_test=[];
+Accuracy_of_detec=[];
+%%
+for i=1:num_of_img
+    image=imread([test_images_file(i).folder '\' test_images_file(i).name ]); 
+    fov=imread([test_fov_file(i).folder '\' test_fov_file(i).name ]);
+    mask_disc=imread([test_dics_file(i).folder '\' test_dics_file(i).name ]); 
+    [center_new] = Detection_of_disc(image,fov,sigma,size_of_erosion);
+    Disc_centres_test(i,1)=center_new(1);
+    Disc_centres_test(i,2)=center_new(2);
+    if mask_disc(center_new(2),center_new(1))==1
+        Accuracy_of_detec(i)=1;
+    else
+        Accuracy_of_detec(i)=0;
+    end
+end
+accuracy=sum(Accuracy_of_detec)/length(Accuracy_of_detec)
+%% save of test discs centers
+% Disc_centres_test=Disc_centres_test-1
+% save('Disc_centres_test.mat','Disc_centres_test')
 
 %% Functions
 function[center_new] = Detection_of_disc(image,fov,sigma,velikost_erodovani)
@@ -245,6 +275,7 @@ function []= creation_of_crop_images(output_image_size,images_file,disc_file,cup
             imwrite(image,[path_to_crop_image 'Test\Images\' images_file(i).name])
             imwrite(mask_disc,[path_to_crop_image 'Test\Disc\' disc_file(i).name])
             imwrite(mask_cup,[path_to_crop_image 'Test\Cup\' cup_file(i).name])
+            imwrite(fov,[path_to_crop_image 'Test\Fov\' fov_file(i).name])
         end
     end
 end
