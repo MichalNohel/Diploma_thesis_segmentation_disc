@@ -12,6 +12,7 @@ from skimage.morphology import disk
 from scipy.ndimage import binary_erosion 
 from skimage.filters import gaussian
 from scipy.ndimage.morphology import distance_transform_edt
+import cv2
 
 import matplotlib.pyplot as plt
 from funkce import Detection_of_disc, Crop_image
@@ -23,14 +24,23 @@ if __name__ == "__main__":
     mask_cup=imread('D:\Diploma_thesis_segmentation_disc\Drishti-GS\Cup\expert1\drishti_test_na_001_cup_exp_1.png')
     sigma=60
     size_of_erosion=80
-    # %%
-    
+    # %%    
     
     img=rgb2xyz(image).astype(np.float32)
     img=rgb2gray(img).astype(np.float32)
     plt.imshow(fov)
     BW=binary_erosion(fov,disk(size_of_erosion))
+    plt.imshow(BW)    
+    
+    # %%
+    fov=cv2.imread('D:\Diploma_thesis_segmentation_disc\Drishti-GS\FOV\drishti_test_na_001_fov.png')
+    plt.imshow(fov)
+    strel=disk(size_of_erosion)
+    #%%
+    
+    BW = cv2.erode(fov,strel,iterations = 1)
     plt.imshow(BW)
+    
     #%%
     vertical_len=BW.shape[0]
     step=round(vertical_len/15);
