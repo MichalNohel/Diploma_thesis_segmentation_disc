@@ -53,8 +53,8 @@ class DataLoader(torch.utils.data.Dataset):
         #Load of Train images
         if self.split=="Train":
             img=imread(self.files_img[index])
-            disc=imread(self.files_disc[index])
-            cup=imread(self.files_cup[index])
+            disc=imread(self.files_disc[index]).astype(bool)
+            cup=imread(self.files_cup[index]).astype(bool)
             output_size=(int(448),int(448),int(3))
             input_size=img.shape
             
@@ -78,25 +78,32 @@ class DataLoader(torch.utils.data.Dataset):
                 
             #Creation of labels masks: batch x width x height
             if(self.segmentation_type=="disc"):
-                mask_ouput_size=(int(1),output_size[0],output_size[1]) # output size of image
-                mask_ouput=np.zeros(mask_ouput_size)
-                mask_ouput[0,:,:]=disc                
+                mask_output_size=(int(1),output_size[0],output_size[1]) # output size of image
+                mask_output=np.zeros(mask_output_size)
+                mask_output[0,:,:]=disc                
             elif(self.segmentation_type=="cup"):
-                mask_ouput_size=(int(1),output_size[0],output_size[1]) # output size of image
-                mask_ouput=np.zeros(mask_ouput_size)
-                mask_ouput[0,:,:]=cup
+                mask_output_size=(int(1),output_size[0],output_size[1]) # output size of image
+                mask_output=np.zeros(mask_output_size)
+                mask_output[0,:,:]=cup
             elif(self.segmentation_type=="disc_cup"):
-                mask_ouput_size=(int(2),output_size[0],output_size[1]) # output size of image
-                mask_ouput=np.zeros(mask_ouput_size)
-                mask_ouput[0,:,:]=disc
-                mask_ouput[1,:,:]=cup
+                mask_output_size=(int(2),output_size[0],output_size[1]) # output size of image
+                mask_output=np.zeros(mask_output_size)
+                mask_output[0,:,:]=disc
+                mask_output[1,:,:]=cup
             else:
                 print("Wrong type of segmentation")
                 
-            
+            mask_output=mask_output.astype(bool)
             img=TF.to_tensor(img)
-            mask=torch.from_numpy(mask_ouput)
+            mask=torch.from_numpy(mask_output)
             return img,mask
+        if self.split=="Test":
+            img=imread("C:\\Users/nohel/Desktop/Databaze_final/Drishti-GS/Images/drishti_test_na_053.png")
+            img=img[763-198:763+250,868-198:868+250,:]
+            img=rgb2hsv(img).astype(np.float32)
+            img=TF.to_tensor(img)
+            return img
+        
         
     def random_crop(self,in_size,out_size,img,disc,cup):
         r=[int(torch.randint(in_size[0]-out_size[0],(1,1)).view(-1).numpy()),int(torch.randint(in_size[1]-out_size[1],(1,1)).view(-1).numpy())]
