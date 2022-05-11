@@ -97,12 +97,51 @@ class DataLoader(torch.utils.data.Dataset):
             img=TF.to_tensor(img)
             mask=torch.from_numpy(mask_output)
             return img,mask
+        
         if self.split=="Test":
-            img=imread("C:\\Users/nohel/Desktop/Databaze_final/Drishti-GS/Images/drishti_test_na_053.png")
-            img=img[763-198:763+250,868-198:868+250,:]
-            img=rgb2hsv(img).astype(np.float32)
-            img=TF.to_tensor(img)
-            return img
+            img_orig=imread(self.files_img[index])
+            disc_orig=imread(self.files_disc[index]).astype(bool)
+            cup_orig=imread(self.files_cup[index]).astype(bool)
+            fov_orig=imread(self.files_fov[index]).astype(bool)
+            output_size=(int(600),int(600),int(3))
+            
+            output_crop_image, output_mask_disc,output_mask_cup=Crop_image(img_orig,disc_orig,cup_orig,output_size, self.disc_centres_test.get('Disc_centres_test')[index])
+            
+            #Preprocesing of img
+            if(self.color_preprocesing=="RGB"):
+                img_crop=output_crop_image.astype(np.float32)
+                
+            if(self.color_preprocesing=="gray"):
+                img_crop=rgb2gray(output_crop_image).astype(np.float32)              
+            
+            if(self.color_preprocesing=="HSV"):
+                img_crop=rgb2hsv(output_crop_image).astype(np.float32)
+                
+            if(self.color_preprocesing=="XYZ"):
+                img_crop=rgb2xyz(output_crop_image).astype(np.float32)
+            
+            #Creation of labels masks: batch x width x height
+            if(self.segmentation_type=="disc"):
+                mask_output_size=(int(1),output_size[0],output_size[1]) # output size of image
+                mask_output=np.zeros(mask_output_size)
+                mask_output[0,:,:]=output_mask_disc                
+            elif(self.segmentation_type=="cup"):
+                mask_output_size=(int(1),output_size[0],output_size[1]) # output size of image
+                mask_output=np.zeros(mask_output_size)
+                mask_output[0,:,:]=output_mask_cup
+            elif(self.segmentation_type=="disc_cup"):
+                mask_output_size=(int(2),output_size[0],output_size[1]) # output size of image
+                mask_output=np.zeros(mask_output_size)
+                mask_output[0,:,:]=output_mask_disc
+                mask_output[1,:,:]=output_mask_cup
+            else:
+                print("Wrong type of segmentation")
+                
+            mask_output=mask_output.astype(bool)
+            img_crop=TF.to_tensor(img_crop)
+            mask_output=torch.from_numpy(mask_output)
+            coordinates=self.disc_centres_test.get('Disc_centres_test')[index].astype(np.int16)
+            return img_crop,mask_output,img_orig,disc_orig,cup_orig,coordinates
         
         
     def random_crop(self,in_size,out_size,img,disc,cup):
@@ -306,4 +345,12 @@ def Crop_image(image,mask_disc,mask_cup,output_image_size,center_new):
     output_mask_disc=mask_disc[x_start:x_start+output_image_size[0],y_start:y_start+output_image_size[1]]
     output_mask_cup=mask_cup[x_start:x_start+output_image_size[0],y_start:y_start+output_image_size[1]]
     return output_crop_image, output_mask_disc,output_mask_cup
+
+
+
+
+
+
+
+
 
