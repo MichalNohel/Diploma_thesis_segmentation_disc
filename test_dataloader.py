@@ -11,6 +11,9 @@ import matplotlib.pyplot as plt
 import numpy as np 
 from skimage.color import hsv2rgb
 
+
+    
+
 if __name__ == "__main__":  
     batch=1 
     loader=DataLoader(split="Train",path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500",color_preprocesing="HSV",segmentation_type="disc")
@@ -49,7 +52,17 @@ if __name__ == "__main__":
             plt.show()
             break
     '''
-    
+    def zkouska(data,mask,pom_sourad):
+        pom=np.zeros([data.shape[2],data.shape[3]])
+        for i in [0,152]:
+            for j in [0,152]:
+                pom_data=data[:,:,i:i+448,j:j+448]
+                #vypocet siti
+                pom[i:i+448,j:j+448]=pom[i:i+448,j:j+448]+1
+        return pom
+                
+                
+                
     for it,(data,mask,img_orig,disc_orig,cup_orig,coordinates) in enumerate(testloader): ### you can iterate over dataset (one epoch)
         if it==0:
             plt.figure(figsize=[10,10])
@@ -61,9 +74,29 @@ if __name__ == "__main__":
             plt.imshow(im_pom)
             plt.show()
             
+            pom_sourad=coordinates.detach().cpu().numpy()[0]   
+            
+            img_orig=img_orig[0,:,:,:].detach().cpu().numpy() 
+            disc_orig=disc_orig[0,:,:].detach().cpu().numpy() 
+            cup_orig=cup_orig[0,:,:].detach().cpu().numpy() 
             
             
-            break
+                        
+            
+            pom=zkouska(data,mask,pom_sourad)
+            
+            
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         
