@@ -21,7 +21,7 @@ if __name__ == "__main__":
     
     loader=DataLoader(split="Test",path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500",color_preprocesing="HSV",segmentation_type="disc")
     testloader=torch.utils.data.DataLoader(loader,batch_size=batch, num_workers=0, shuffle=False)
-    
+    net=torch.load('model.pth')
     
     '''
     for it,(data,mask) in enumerate(trainloader): ### you can iterate over dataset (one epoch)
@@ -52,12 +52,15 @@ if __name__ == "__main__":
             plt.show()
             break
     '''
-    def zkouska(data,mask,pom_sourad):
+    def zkouska(data,mask,pom_sourad,net):
         pom=np.zeros([data.shape[2],data.shape[3]])
         for i in [0,152]:
             for j in [0,152]:
                 pom_data=data[:,:,i:i+448,j:j+448]
+                pom_data.cuda()
+                output=net(pom_data)
                 #vypocet siti
+                
                 pom[i:i+448,j:j+448]=pom[i:i+448,j:j+448]+1
         return pom
                 
@@ -83,7 +86,7 @@ if __name__ == "__main__":
             
                         
             
-            pom=zkouska(data,mask,pom_sourad)
+            pom=zkouska(data,mask,pom_sourad,net)
             
             
         
