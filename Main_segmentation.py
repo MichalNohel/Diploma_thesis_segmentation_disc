@@ -162,6 +162,23 @@ if __name__ == "__main__":
                     plt.legend(loc="upper left")
                     plt.title('test')
                     plt.show()
+                    
+                    plt.figure(figsize=[10,10])
+                    plt.subplot(1,3,1)        
+                    im_pom=img_orig[0,:,:,:].detach().cpu().numpy()   
+                    #im_pom=np.transpose(im_pom,(1,2,0))
+                    #im_pom=hsv2rgb(im_pom)
+                    plt.imshow(im_pom)        
+                    
+                    plt.subplot(1,3,2)    
+                    #plt.imshow(lbl[0,0,:,:].detach().cpu().numpy())
+                    plt.imshow(disc_orig)
+                    
+                    plt.subplot(1,3,3)    
+                    #plt.imshow(output[0,0,:,:].detach().cpu().numpy()>threshold)
+                    plt.imshow(output_mask)
+                    plt.show() 
+                    
                     print('Test - iteration ' + str(it))
                 
                 
@@ -193,16 +210,18 @@ if __name__ == "__main__":
     
         plt.figure(figsize=[10,10])
         plt.subplot(1,3,1)        
-        im_pom=data[0,:,:,:].detach().cpu().numpy()   
-        im_pom=np.transpose(im_pom,(1,2,0))
-        im_pom=hsv2rgb(im_pom)
+        im_pom=img_orig[0,:,:,:].detach().cpu().numpy()   
+        #im_pom=np.transpose(im_pom,(1,2,0))
+        #im_pom=hsv2rgb(im_pom)
         plt.imshow(im_pom)        
         
         plt.subplot(1,3,2)    
-        plt.imshow(lbl[0,0,:,:].detach().cpu().numpy())
+        #plt.imshow(lbl[0,0,:,:].detach().cpu().numpy())
+        plt.imshow(disc_orig)
         
         plt.subplot(1,3,3)    
-        plt.imshow(output[0,0,:,:].detach().cpu().numpy()>threshold)
+        #plt.imshow(output[0,0,:,:].detach().cpu().numpy()>threshold)
+        plt.imshow(output_mask)
         plt.show() 
     torch.save(net, 'model.pth')
     
