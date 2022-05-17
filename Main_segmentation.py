@@ -21,7 +21,7 @@ if __name__ == "__main__":
     epochs=25
     batch=10
     threshold=0.5
-    threshold_patch=0.25
+    threshold_patch=0.5
     color_preprocesing="HSV"
     segmentation_type="disc"
     
@@ -164,19 +164,28 @@ if __name__ == "__main__":
                     plt.show()
                     
                     plt.figure(figsize=[10,10])
-                    plt.subplot(1,3,1)        
+                    plt.subplot(2,3,1)        
                     im_pom=img_orig[0,:,:,:].detach().cpu().numpy()   
-                    #im_pom=np.transpose(im_pom,(1,2,0))
-                    #im_pom=hsv2rgb(im_pom)
                     plt.imshow(im_pom)        
                     
-                    plt.subplot(1,3,2)    
-                    #plt.imshow(lbl[0,0,:,:].detach().cpu().numpy())
+                    plt.subplot(2,3,2)    
                     plt.imshow(disc_orig)
                     
-                    plt.subplot(1,3,3)    
-                    #plt.imshow(output[0,0,:,:].detach().cpu().numpy()>threshold)
+                    plt.subplot(2,3,3)    
                     plt.imshow(output_mask)
+                    
+                    plt.subplot(2,3,4)        
+                    data_pom=data[0,:,:,:].detach().cpu().numpy()  
+                    data_pom=np.transpose(data_pom,(1,2,0))
+                    data_pom=hsv2rgb(data_pom)
+                    plt.imshow(data_pom)  
+                    
+                    plt.subplot(2,3,5)                       
+                    plt.imshow(mask[0,0,:,:].detach().cpu().numpy())
+                    
+                    plt.subplot(2,3,6)                       
+                    plt.imshow(output_mask_all)
+                    
                     plt.show() 
                     
                     print('Test - iteration ' + str(it))
@@ -223,7 +232,8 @@ if __name__ == "__main__":
         #plt.imshow(output[0,0,:,:].detach().cpu().numpy()>threshold)
         plt.imshow(output_mask)
         plt.show() 
-    torch.save(net, 'model.pth')
+    #torch.save(net, 'model_01.pth')
+    torch.save(net.state_dict(), 'model_01.pth')
     
         
     

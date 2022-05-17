@@ -46,6 +46,11 @@ class DataLoader(torch.utils.data.Dataset):
             self.disc_centres_test=loadmat(self.path_to_data+'/Disc_centres_test.mat')          
             self.num_of_imgs=len(self.files_img)
             
+        if split=="HRF":
+            self.files_img=glob.glob(self.path_to_data+'/images/*.jpg')            
+            self.files_fov=glob.glob(self.path_to_data+'/mask/*.tif')
+            self.num_of_imgs=len(self.files_img)
+            
     def __len__(self):
         return self.num_of_imgs
     
@@ -142,6 +147,33 @@ class DataLoader(torch.utils.data.Dataset):
             mask_output=torch.from_numpy(mask_output)
             coordinates=self.disc_centres_test.get('Disc_centres_test')[index].astype(np.int16)
             return img_crop,mask_output,img_orig,disc_orig,cup_orig,coordinates
+        
+        if self.split=="HRF":
+            img_orig=imread(self.files_img[index])
+            fov_orig=imread(self.files_fov[index]).astype(bool)
+            output_size=(int(600),int(600),int(3))
+            sigma=60
+            size_of_erosion=80            
+            center_new=Detection_of_disc(img_orig,fov_orig[:,:,0],sigma,size_of_erosion)
+            output_crop_image=Crop_image_HRF(img_orig,output_size,center_new)
+            
+            #Preprocesing of img
+            if(self.color_preprocesing=="RGB"):
+                img_crop=output_crop_image.astype(np.float32)
+                
+            if(self.color_preprocesing=="gray"):
+                img_crop=rgb2gray(output_crop_image).astype(np.float32)              
+            
+            if(self.color_preprocesing=="HSV"):
+                img_crop=rgb2hsv(output_crop_image).astype(np.float32)
+                
+            if(self.color_preprocesing=="XYZ"):
+                img_crop=rgb2xyz(output_crop_image).astype(np.float32)
+            
+            img_crop=TF.to_tensor(img_crop)
+            coordinates=np.array(center_new)
+            return img_crop,img_orig,coordinates
+            
         
         
     def random_crop(self,in_size,out_size,img,disc,cup):
@@ -346,7 +378,27 @@ def Crop_image(image,mask_disc,mask_cup,output_image_size,center_new):
     output_mask_cup=mask_cup[x_start:x_start+output_image_size[0],y_start:y_start+output_image_size[1]]
     return output_crop_image, output_mask_disc,output_mask_cup
 
-
+def Crop_image_HRF(image,output_image_size,center_new): 
+    size_in_img=image.shape
+    x_half=int(output_image_size[0]/2)
+    y_half=int(output_image_size[1]/2)  
+    
+    if ((center_new[1]-x_half)<0):
+        x_start=0
+    elif ((center_new[1]+x_half)>size_in_img[0]):
+        x_start=size_in_img[0]-output_image_size[0]
+    else:
+        x_start=center_new[1]-x_half        
+    
+    if ((center_new[0]-y_half)<0):
+        y_start=0
+    elif ((center_new[0]+y_half)>size_in_img[1]):
+        y_start=size_in_img[1]-output_image_size[1]
+    else:
+        y_start=center_new[0]-y_half
+    
+    output_crop_image=image[x_start:x_start+output_image_size[0],y_start:y_start+output_image_size[1],:]
+    return output_crop_image
 
 
 
