@@ -2,11 +2,11 @@ clear all
 close all
 clc
 path_to_data='D:\Diploma_thesis_segmentation_disc';
-output_image_size=[500,500];
+output_image_size=[512,512];
 sigma=60;
 size_of_erosion=80;
 percentage_number_test=0.2;
-path_to_crop_image=[path_to_data '/Data_500_500/'];
+path_to_crop_image=[path_to_data '/Data_512_512/'];
 
 %% Dristi-GS - Expert 1
 pom=52; % split to test and train dataset
@@ -207,8 +207,8 @@ for i=1:num_of_img
 end
 accuracy=sum(Accuracy_of_detec)/length(Accuracy_of_detec)
 %% save of test discs centers
-% Disc_centres_test=Disc_centres_test-1
-% save('Disc_centres_test.mat','Disc_centres_test')
+Disc_centres_test=Disc_centres_test-1
+save('Disc_centres_test.mat','Disc_centres_test')
 
 %% Functions
 function[center_new] = Detection_of_disc(image,fov,sigma,velikost_erodovani)
@@ -237,6 +237,9 @@ function [output_crop_image, output_mask_disc,output_mask_cup]=Crop_image(image,
         x_start=size_in_img(1)-output_image_size(1);
     else
         x_start=center_new(2)-x_half;
+        if x_start==0
+            x_start=1;
+        end
     end
 
     if ((center_new(1)-y_half)<0)
@@ -245,6 +248,9 @@ function [output_crop_image, output_mask_disc,output_mask_cup]=Crop_image(image,
         y_start=size_in_img(2)-output_image_size(2);
     else
         y_start=center_new(1)-y_half;
+        if y_start==0
+            y_start=1;
+        end
     end
 
     output_crop_image=image(x_start:x_start+output_image_size(1)-1,y_start:y_start+output_image_size(2)-1,:);

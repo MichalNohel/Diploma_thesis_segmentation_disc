@@ -9,7 +9,7 @@ from funkce_final import DataLoader,Unet
 import torch
 import matplotlib.pyplot as plt
 import numpy as np 
-from skimage.color import hsv2rgb
+from skimage.color import hsv2rgb,xyz2rgb
 
 
     
@@ -18,20 +18,20 @@ if __name__ == "__main__":
     batch=1 
     threshold=0.5
     threshold_patch=0.5
-    color_preprocesing="HSV"
+    color_preprocesing="RGB"
     segmentation_type="disc"
     
-    loader=DataLoader(split="Train",path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500",color_preprocesing="HSV",segmentation_type="disc")
+    loader=DataLoader(split="Train",path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500",color_preprocesing=color_preprocesing,segmentation_type=segmentation_type)
     trainloader=torch.utils.data.DataLoader(loader,batch_size=batch, num_workers=0, shuffle=False)
     
-    loader=DataLoader(split="Test",path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500",color_preprocesing="HSV",segmentation_type="disc")
+    loader=DataLoader(split="Test",path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500",color_preprocesing=color_preprocesing,segmentation_type=segmentation_type)
     testloader=torch.utils.data.DataLoader(loader,batch_size=batch, num_workers=0, shuffle=False)
     
-    loader=DataLoader(split="HRF",path_to_data="D:\Diploma_thesis_segmentation_disc",color_preprocesing="HSV",segmentation_type="disc")
+    loader=DataLoader(split="HRF",path_to_data="D:\Diploma_thesis_segmentation_disc",color_preprocesing=color_preprocesing,segmentation_type=segmentation_type)
     HRF_loader=torch.utils.data.DataLoader(loader,batch_size=batch, num_workers=0, shuffle=False)
     
     net = Unet().cuda()   
-    net.load_state_dict(torch.load("model_01.pth"))
+    net.load_state_dict(torch.load("model_02.pth"))
     net.eval()
     
     
@@ -130,8 +130,8 @@ if __name__ == "__main__":
             plt.subplot(2,2,3)        
             data_pom=data[0,:,:,:].detach().cpu().numpy()  
             data_pom=np.transpose(data_pom,(1,2,0))
-            data_pom=hsv2rgb(data_pom)
-            plt.imshow(data_pom)  
+            #data_pom=xyz2rgb(data_pom)
+            plt.imshow(data_pom.astype(np.uint8))  
             
             plt.subplot(2,2,4)                       
             plt.imshow(output_mask_all)            
