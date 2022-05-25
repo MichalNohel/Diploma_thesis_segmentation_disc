@@ -8,7 +8,7 @@ Created on Tue May 24 12:39:07 2022
 
 
 import numpy as np
-from funkce_final_bez_patche import DataLoader, Unet, dice_loss, dice_coefficient
+from funkce_final_bez_patche import DataLoader, Unet, dice_loss, dice_coefficient,Postprocesing
 import matplotlib.pyplot as plt
 import torch
 import torch.optim as optim
@@ -23,7 +23,6 @@ if __name__ == "__main__":
     epochs=25
     batch=6
     threshold=0.5
-    threshold_patch=0.5
     color_preprocesing="RGB"
     segmentation_type="disc"
     output_size=(int(608),int(608),int(3))
@@ -44,17 +43,20 @@ if __name__ == "__main__":
     
     train_loss = []
     test_loss = []
-    train_acc = []  
-    test_acc = []
+    #train_acc = []  
+    #test_acc = []
     train_dice = []
     test_dice = []
+    train_dice_final= []
+    test_dice_final = []
     
     it_test=-1
     it_train=-1
     for epoch in range(epochs):
-        acc_tmp = []
+        #acc_tmp = []
         loss_tmp = []
         dice_tmp = []
+        dice_tmp_final = []
         print('epoch number ' + str(epoch+1))
         
         for k,(data,lbl) in enumerate(trainloader):
@@ -78,16 +80,19 @@ if __name__ == "__main__":
             lbl_mask=lbl.detach().cpu().numpy()
             output_mask=output.detach().cpu().numpy() > threshold
             
-            acc=np.mean((output_mask==lbl_mask))
-            acc_tmp.append(acc)
-            loss_tmp.append(loss.cpu().detach().numpy())
-            
+            #acc=np.mean((output_mask==lbl_mask))
+            #acc_tmp.append(acc)
+            loss_tmp.append(loss.cpu().detach().numpy())            
             dice_tmp.append(dice_coefficient(output_mask,lbl_mask))
+            
+            #♣output=Postprocesing(output)
+            
+            
             
             if (it_train % 10==0):
                 clear_output()
                 plt.figure(figsize=[10,10])
-                plt.plot(acc_tmp,label='train acc')
+                #plt.plot(acc_tmp,label='train acc')
                 plt.plot(loss_tmp,label='train loss')
                 plt.plot(dice_tmp,label='dice')
                 plt.legend(loc="upper left")
@@ -110,14 +115,14 @@ if __name__ == "__main__":
                 print('Train - iteration ' + str(it_train))
             
         train_loss.append(np.mean(loss_tmp))
-        train_acc.append(np.mean(acc_tmp))
+        #train_acc.append(np.mean(acc_tmp))
         train_dice.append(np.mean(dice_tmp)) 
         
         
-        acc_tmp = []
+        #acc_tmp = []
         loss_tmp = []
         dice_tmp =  []
-        
+        dice_tmp_final = []
         for kk,(data,mask,img_orig,disc_orig,cup_orig,coordinates) in enumerate(testloader):
             with torch.no_grad():
                 it_test+=1
@@ -154,15 +159,15 @@ if __name__ == "__main__":
                 
                 disc_orig=disc_orig[0,:,:].detach().cpu().numpy() 
                 
-                acc=np.mean((output_mask==disc_orig))
-                acc_tmp.append(acc)
+                #acc=np.mean((output_mask==disc_orig))
+                #acc_tmp.append(acc)
                 loss_tmp.append(loss.cpu().detach().numpy())                
                 dice_tmp.append(dice_coefficient(output_mask,disc_orig))
                 
                 if (it_test % 10==0):
                     clear_output()
                     plt.figure(figsize=[10,10])
-                    plt.plot(acc_tmp,label='test acc')
+                    #plt.plot(acc_tmp,label='test acc')
                     plt.plot(loss_tmp,label='test loss')
                     plt.plot(dice_tmp,label='dice')
                     plt.legend(loc="upper left")
@@ -198,7 +203,7 @@ if __name__ == "__main__":
                 
                 
         test_loss.append(np.mean(loss_tmp))
-        test_acc.append(np.mean(acc_tmp))
+        #test_acc.append(np.mean(acc_tmp))
         test_dice.append(np.mean(dice_tmp))      
         
         
@@ -207,7 +212,7 @@ if __name__ == "__main__":
         
         clear_output()
         plt.figure(figsize=[10,10])
-        plt.plot(train_acc,label='train acc')
+        #plt.plot(train_acc,label='train acc')
         plt.plot(train_loss,label='train loss')
         plt.plot(train_dice,label='dice')
         plt.legend(loc="upper left")
@@ -216,7 +221,7 @@ if __name__ == "__main__":
         
         clear_output()
         plt.figure(figsize=[10,10])
-        plt.plot(test_acc,label='train acc')
+        #plt.plot(test_acc,label='train acc')
         plt.plot(test_loss,label='train loss')
         plt.plot(test_dice,label='dice')
         plt.legend(loc="upper left")

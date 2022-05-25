@@ -20,6 +20,6 @@ imwrite(MaskDisk01,[path_to_disc images_file(i).name(1:end-4) '_disc.png'])
 %% cup
 imageSegmenter(image)
 %%
-imwrite(MaskCup01,[path_to_disc images_file(i).name(1:end-4) '_cup.png'])
+imwrite(MaskCup01,[path_to_cup images_file(i).name(1:end-4) '_cup.png'])
 
 

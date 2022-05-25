@@ -12,8 +12,9 @@ import torch.nn.functional as F
 import glob
 from skimage.io import imread
 from skimage.color import rgb2gray,rgb2hsv,rgb2xyz
-from skimage.morphology import disk
+from skimage.morphology import disk,remove_small_objects, binary_closing
 from scipy.ndimage import binary_erosion 
+from scipy.ndimage.morphology import binary_fill_holes
 from skimage.filters import gaussian
 import torchvision.transforms.functional as TF
 from torch.nn import init
@@ -50,6 +51,7 @@ class DataLoader(torch.utils.data.Dataset):
         if split=="HRF":
             self.files_img=glob.glob(self.path_to_data+'/images/*.jpg')            
             self.files_fov=glob.glob(self.path_to_data+'/mask/*.tif')
+            self.Disc_centres_HRF=loadmat(self.path_to_data+'/Disc_centres_HRF.mat')  
             self.num_of_imgs=len(self.files_img)
             
     def __len__(self):
@@ -153,10 +155,11 @@ class DataLoader(torch.utils.data.Dataset):
             img_orig=imread(self.files_img[index])
             fov_orig=imread(self.files_fov[index]).astype(bool)
             output_size=self.output_size
-            sigma=60
-            size_of_erosion=80            
-            center_new=Detection_of_disc(img_orig,fov_orig[:,:,0],sigma,size_of_erosion)
-            output_crop_image=Crop_image_HRF(img_orig,output_size,center_new)
+            #sigma=60
+            #size_of_erosion=80            
+            #center_new=Detection_of_disc(img_orig,fov_orig[:,:,0],sigma,size_of_erosion)
+            output_crop_image=Crop_image_HRF(img_orig,output_size,self.Disc_centres_HRF.get('center_new_HRF')[index].astype(np.int16))
+            #coordinates=np.array(center_new)
             
             #Preprocesing of img
             if(self.color_preprocesing=="RGB"):
@@ -172,7 +175,8 @@ class DataLoader(torch.utils.data.Dataset):
                 img_crop=rgb2xyz(output_crop_image).astype(np.float32)
             
             img_crop=TF.to_tensor(img_crop)
-            coordinates=np.array(center_new)
+            
+            coordinates=self.Disc_centres_HRF.get('center_new_HRF')[index].astype(np.int16)
             return img_crop,img_orig,coordinates
             
         
@@ -400,7 +404,24 @@ def Crop_image_HRF(image,output_image_size,center_new):
     return output_crop_image
 
 
-
+def Postprocesing(output,min_size,size_of_disk,ploting):
+    
+    output_final=binary_fill_holes(output)
+    output_final=remove_small_objects(output_final,min_size=min_size)
+    output_final=binary_closing(output_final,disk(size_of_disk))
+    if ploting:        
+        plt.figure(figsize=[10,10])
+        plt.subplot(1,2,1)
+        plt.imshow(output)
+        plt.title('Po vystupu sítě')    
+        
+        plt.subplot(1,2,2)
+        plt.imshow(output_final)
+        plt.title('Postprocesing')
+        plt.show()
+    
+    return output_final
+    
 
 
 
