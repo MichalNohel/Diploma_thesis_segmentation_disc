@@ -85,8 +85,7 @@ if __name__ == "__main__":
             loss_tmp.append(loss.cpu().detach().numpy())            
             dice_tmp.append(dice_coefficient(output_mask,lbl_mask))
             
-            #♣output=Postprocesing(output)
-            
+            #♣output=Postprocesing(output)    
             
             
             if (it_train % 10==0):
