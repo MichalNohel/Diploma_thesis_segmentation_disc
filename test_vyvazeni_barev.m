@@ -1,5 +1,9 @@
-path_to_data='D:\Diploma_thesis_segmentation_disc\Data_640_640\';
-images_file = dir([path_to_data 'Train\Images_crop\*.png']);
+clear all
+close all
+clc
+path_to_data='D:\Diploma_thesis_segmentation_disc\Data_320_320_25px_all_database\';
+% images_file = dir([path_to_data 'Train\Images_crop\*.png']);
+images_file = dir([path_to_data 'Test\Images\*.png']);
 num_of_img=length(images_file);
 for i=1:num_of_img
     %expert 1

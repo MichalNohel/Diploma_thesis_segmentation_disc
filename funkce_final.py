@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Apr 22 12:40:41 2022
+Created on Tue May 24 12:37:41 2022
 
 @author: nohel
 """
@@ -12,8 +12,9 @@ import torch.nn.functional as F
 import glob
 from skimage.io import imread
 from skimage.color import rgb2gray,rgb2hsv,rgb2xyz
-from skimage.morphology import disk
+from skimage.morphology import disk,remove_small_objects, binary_closing
 from scipy.ndimage import binary_erosion 
+from scipy.ndimage.morphology import binary_fill_holes
 from skimage.filters import gaussian
 import torchvision.transforms.functional as TF
 from torch.nn import init
@@ -22,11 +23,12 @@ from scipy.io import loadmat
 
 ## Dataloader
 class DataLoader(torch.utils.data.Dataset):
-    def __init__(self,split="Train",path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500",color_preprocesing="gray",segmentation_type="disc"):
+    def __init__(self,split="Train",path_to_data="D:\Diploma_thesis_segmentation_disc/Data_640_640",color_preprocesing="RGB",segmentation_type="disc",output_size=(int(608),int(608),int(3))):
         self.split=split
         self.path_to_data=path_to_data+ '/' +split
         self.color_preprocesing=color_preprocesing
         self.segmentation_type=segmentation_type
+        self.output_size=output_size
         
         
         if split=="Train":
@@ -46,10 +48,6 @@ class DataLoader(torch.utils.data.Dataset):
             self.disc_centres_test=loadmat(self.path_to_data+'/Disc_centres_test.mat')          
             self.num_of_imgs=len(self.files_img)
             
-        if split=="HRF":
-            self.files_img=glob.glob(self.path_to_data+'/images/*.jpg')            
-            self.files_fov=glob.glob(self.path_to_data+'/mask/*.tif')
-            self.num_of_imgs=len(self.files_img)
             
     def __len__(self):
         return self.num_of_imgs
@@ -60,7 +58,7 @@ class DataLoader(torch.utils.data.Dataset):
             img=imread(self.files_img[index])
             disc=imread(self.files_disc[index]).astype(bool)
             cup=imread(self.files_cup[index]).astype(bool)
-            output_size=(int(448),int(448),int(3))
+            output_size=self.output_size
             input_size=img.shape
             
             img,disc,cup=self.random_crop(input_size,output_size,img,disc,cup)
@@ -108,7 +106,7 @@ class DataLoader(torch.utils.data.Dataset):
             disc_orig=imread(self.files_disc[index]).astype(bool)
             cup_orig=imread(self.files_cup[index]).astype(bool)
             fov_orig=imread(self.files_fov[index]).astype(bool)
-            output_size=(int(600),int(600),int(3))
+            output_size=self.output_size
             
             output_crop_image, output_mask_disc,output_mask_cup=Crop_image(img_orig,disc_orig,cup_orig,output_size, self.disc_centres_test.get('Disc_centres_test')[index])
             
@@ -151,11 +149,12 @@ class DataLoader(torch.utils.data.Dataset):
         if self.split=="HRF":
             img_orig=imread(self.files_img[index])
             fov_orig=imread(self.files_fov[index]).astype(bool)
-            output_size=(int(600),int(600),int(3))
-            sigma=60
-            size_of_erosion=80            
-            center_new=Detection_of_disc(img_orig,fov_orig[:,:,0],sigma,size_of_erosion)
-            output_crop_image=Crop_image_HRF(img_orig,output_size,center_new)
+            output_size=self.output_size
+            #sigma=60
+            #size_of_erosion=80            
+            #center_new=Detection_of_disc(img_orig,fov_orig[:,:,0],sigma,size_of_erosion)
+            output_crop_image=Crop_image_HRF(img_orig,output_size,self.Disc_centres_HRF.get('center_new_HRF')[index].astype(np.int16))
+            #coordinates=np.array(center_new)
             
             #Preprocesing of img
             if(self.color_preprocesing=="RGB"):
@@ -171,7 +170,8 @@ class DataLoader(torch.utils.data.Dataset):
                 img_crop=rgb2xyz(output_crop_image).astype(np.float32)
             
             img_crop=TF.to_tensor(img_crop)
-            coordinates=np.array(center_new)
+            
+            coordinates=self.Disc_centres_HRF.get('center_new_HRF')[index].astype(np.int16)
             return img_crop,img_orig,coordinates
             
         
@@ -200,9 +200,7 @@ class DataLoader(torch.utils.data.Dataset):
     
             return img.copy(),disc.copy(),cup.copy()
              
-                
-          
-            
+                  
         
 ## U-Net
 class unetConv2(nn.Module):
@@ -364,7 +362,7 @@ def Crop_image(image,mask_disc,mask_cup,output_image_size,center_new):
     elif ((center_new[1]+x_half)>size_in_img[0]):
         x_start=size_in_img[0]-output_image_size[0]
     else:
-        x_start=center_new[1]-x_half        
+        x_start=center_new[1]-x_half           
     
     if ((center_new[0]-y_half)<0):
         y_start=0
@@ -401,7 +399,24 @@ def Crop_image_HRF(image,output_image_size,center_new):
     return output_crop_image
 
 
-
+def Postprocesing(output,min_size,size_of_disk,ploting):
+    
+    output_final=binary_fill_holes(output)
+    output_final=remove_small_objects(output_final,min_size=min_size)
+    output_final=binary_closing(output_final,disk(size_of_disk))
+    if ploting:        
+        plt.figure(figsize=[10,10])
+        plt.subplot(1,2,1)
+        plt.imshow(output)
+        plt.title('Po vystupu sítě')    
+        
+        plt.subplot(1,2,2)
+        plt.imshow(output_final)
+        plt.title('Postprocesing')
+        plt.show()
+    
+    return output_final
+    
 
 
 
