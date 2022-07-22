@@ -25,19 +25,26 @@ if __name__ == "__main__":
     threshold=0.5
     color_preprocesing="RGB"
     
-    #segmentation_type="disc_cup"
-    segmentation_type="cup"
+    segmentation_type="disc_cup"
+    #segmentation_type="cup"
     #segmentation_type="disc"
     
     output_size=(int(288),int(288),int(3))
     #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500"
     #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_640_640_55px_all_database"
-    path_to_data="D:\Diploma_thesis_segmentation_disc/Data_320_320_25px/Data_320_320_25px_all_database"
+    #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_320_320_25px/Data_320_320_25px_all_database"
+    path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px_preprocesing_all_database"
     
+    
+
     #Postsprocesing parameters
-    min_size_of_disk=1000
-    size_of_disk_for_erosion=10
-    ploting=0
+    min_size_of_optic_disk=1000
+    size_of_disk_for_morphing=40
+    #type_of_morphing='closing' 
+    #type_of_morphing='openinig' 
+    type_of_morphing='closing_opening' 
+    #type_of_morphing='openinig_closing' 
+    ploting=0    
     
     
     loader=DataLoader(split="Train",path_to_data=path_to_data,color_preprocesing=color_preprocesing,segmentation_type=segmentation_type,output_size=output_size)
@@ -203,7 +210,7 @@ if __name__ == "__main__":
                     output_mask_cup=output_mask_cup.astype(bool)  
                     
                     
-                    output_final=Postprocesing(output[0,0,:,:],min_size_of_disk,size_of_disk_for_erosion,ploting)
+                    output_final=Postprocesing(output[0,0,:,:],min_size_of_optic_disk,type_of_morphing,size_of_disk_for_morphing,ploting)
                     
                     output_mask_disc_final[x_start:x_start+output_size[0],y_start:y_start+output_size[0]]=output_final
                     output_mask_disc_final=output_mask_disc_final.astype(bool)
@@ -373,14 +380,12 @@ if __name__ == "__main__":
                 optimizer.step()
                 
                 lbl_mask=lbl.detach().cpu().numpy()
-                output_mask=output.detach().cpu().numpy() > threshold
+                output=output.detach().cpu().numpy() > threshold
                 
-                #acc=np.mean((output_mask==lbl_mask))
-                #acc_tmp.append(acc)
                 loss_tmp.append(loss.cpu().detach().numpy())            
-                dice_tmp.append(dice_coefficient(output_mask,lbl_mask))
+                dice_tmp.append(dice_coefficient(output,lbl_mask))
                 
-                output_final=Postprocesing(output_mask[0,0,:,:],min_size_of_disk,size_of_disk_for_erosion,ploting)   
+                output_final=Postprocesing(output[0,0,:,:],min_size_of_optic_disk,type_of_morphing,size_of_disk_for_morphing,ploting) 
                 dice_tmp_final.append(dice_coefficient(output_final,lbl_mask[0,0,:,:]))
                 
                 if (it_train % 10==0):
@@ -404,7 +409,7 @@ if __name__ == "__main__":
                     plt.imshow(lbl_mask[0,0,:,:])
                     
                     plt.subplot(1,4,3)    
-                    plt.imshow(output_mask[0,0,:,:])
+                    plt.imshow(output[0,0,:,:])
                     
                     plt.subplot(1,4,4)    
                     plt.imshow(output_final)
@@ -461,7 +466,7 @@ if __name__ == "__main__":
                     
                     loss=dice_loss(lbl,TF.to_tensor(output_mask))
                     
-                    output_final=Postprocesing(output[0,0,:,:],min_size_of_disk,size_of_disk_for_erosion,ploting)
+                    output_final=Postprocesing(output[0,0,:,:],min_size_of_optic_disk,type_of_morphing,size_of_disk_for_morphing,ploting) 
                     output_mask_final[x_start:x_start+output_size[0],y_start:y_start+output_size[0]]=output_final
                     output_mask_final=output_mask_final.astype(bool)
                     
@@ -566,7 +571,7 @@ if __name__ == "__main__":
             plt.show() 
             
     #torch.save(net, 'model_01.pth')
-    torch.save(net.state_dict(), 'model_01_RGB_detection_cup_25px_all_databases.pth')
+    torch.save(net.state_dict(), 'model_01_RGB_disc_cup_25px_all_modified_databases.pth')
     
         
     

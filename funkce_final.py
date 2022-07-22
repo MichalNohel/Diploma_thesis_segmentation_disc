@@ -12,10 +12,11 @@ import torch.nn.functional as F
 import glob
 from skimage.io import imread
 from skimage.color import rgb2gray,rgb2hsv,rgb2xyz
-from skimage.morphology import disk,remove_small_objects, binary_closing
+from skimage.morphology import disk,remove_small_objects, binary_closing, binary_opening
+from skimage.filters import gaussian
+
 from scipy.ndimage import binary_erosion 
 from scipy.ndimage.morphology import binary_fill_holes
-from skimage.filters import gaussian
 import torchvision.transforms.functional as TF
 from torch.nn import init
 import matplotlib.pyplot as plt
@@ -399,11 +400,26 @@ def Crop_image_HRF(image,output_image_size,center_new):
     return output_crop_image
 
 
-def Postprocesing(output,min_size,size_of_disk,ploting):
+def Postprocesing(output,min_size,type_of_morphing,size_of_disk,ploting):
     
     output_final=binary_fill_holes(output)
     output_final=remove_small_objects(output_final,min_size=min_size)
-    output_final=binary_closing(output_final,disk(size_of_disk))
+    
+    output_final=np.pad(output_final, pad_width=[(50, 50),(50, 50)], mode='constant')
+    
+    if (type_of_morphing=="closing"):
+        output_final=binary_closing(output_final,disk(size_of_disk))
+    elif (type_of_morphing=="openinig"):
+        output_final=binary_opening(output_final,disk(size_of_disk))
+    elif (type_of_morphing=="closing_opening"):
+        output_final=binary_closing(output_final,disk(size_of_disk)) 
+        output_final=binary_opening(output_final,disk(size_of_disk))
+    elif (type_of_morphing=="opening_closing"):
+        output_final=binary_opening(output_final,disk(size_of_disk)) 
+        output_final=binary_closing(output_final,disk(size_of_disk))  
+        
+    output_final=output_final[50:338,50:338]
+    
     if ploting:        
         plt.figure(figsize=[10,10])
         plt.subplot(1,2,1)

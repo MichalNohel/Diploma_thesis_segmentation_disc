@@ -23,7 +23,11 @@ class NumpyArrayEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 
-if __name__ == "__main__":  
+if __name__ == "__main__": 
+    
+    ZAPISOVAT=False
+    ZAPISOVAT_KONTURY=True
+    
     batch=1 
     threshold=0.5
     color_preprocesing="RGB"
@@ -34,18 +38,28 @@ if __name__ == "__main__":
     
     output_size=(int(288),int(288),int(3))
     #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500"
-    path_to_data="D:\Diploma_thesis_segmentation_disc/Data_320_320_25px/Data_320_320_25px_all_database"
+    #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_320_320_25px/Data_320_320_25px_all_database"
+    #path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px\Data_320_320_25px_UBMI_mereni"
+    
+    # Normalizace
+    #path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px_preprocesing_UBMI_mereni"
+    path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px_preprocesing_all_database"
     
     
-    path_to_extracted_data=path_to_data+ "/Results/"
+    
+    path_to_extracted_data=path_to_data+ "/Results_closing_opening_40/"
     
     
     #mereni UBMI
     #path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px\Data_320_320_25px_UBMI_mereni"
     
     #Postsprocesing parameters
-    min_size_of_disk=1000
-    size_of_disk_for_erosion=10
+    min_size_of_optic_disk=1000
+    size_of_disk_for_morphing=40
+    #type_of_morphing='closing' 
+    #type_of_morphing='openinig' 
+    type_of_morphing='closing_opening' 
+    #type_of_morphing='openinig_closing' 
     ploting=0    
     
     loader=DataLoader(split="Train",path_to_data=path_to_data,color_preprocesing=color_preprocesing,segmentation_type=segmentation_type,output_size=output_size)
@@ -60,7 +74,9 @@ if __name__ == "__main__":
     
     #net = Unet().cuda()   
     net=Unet(out_size=2).cuda()  
-    net.load_state_dict(torch.load(path_to_data + '/Naucene_modely/disc_and_cup_detection_25px_all_databases/model_01_RGB_detection_disc_cup_25px_all_databases.pth'))
+    #net.load_state_dict(torch.load(path_to_data + '/Naucene_modely/disc_and_cup_detection_25px_all_databases/model_01_RGB_detection_disc_cup_25px_all_databases.pth'))
+    net.load_state_dict(torch.load(path_to_data + '/Naucene_modely/disc_and_cup_detection_25px_all_databases/model_01_RGB_disc_cup_25px_all_modified_databases.pth'))
+    
     net.eval()
     
     
@@ -116,16 +132,18 @@ if __name__ == "__main__":
         plt.subplot(2,3,6)    
         plt.imshow(output[0,1,:,:])
         plt.title('Output of net - cup')
-        plt.savefig(dir_pom+'/' + name_of_img +"_vysledek.png")
+        
+        if ZAPISOVAT:
+            plt.savefig(dir_pom+'/' + name_of_img +"_vysledek.png")
                     
         plt.show() 
         
-        
-        # Uložení masek ze segmentace
-        # Disc
-        imsave(dir_pom+'/' + name_of_img +"_Disc.png",img_as_uint(output[0,0,:,:]))
-        # Cup
-        imsave(dir_pom+'/' + name_of_img +"_Cup.png",img_as_uint(output[0,1,:,:]))
+        if ZAPISOVAT:
+            # Uložení masek ze segmentace
+            # Disc
+            imsave(dir_pom+'/' + name_of_img +"_Disc.png",img_as_uint(output[0,0,:,:]))
+            # Cup
+            imsave(dir_pom+'/' + name_of_img +"_Cup.png",img_as_uint(output[0,1,:,:]))
         
         
         # Vytvoření a uložení kontur
@@ -137,40 +155,44 @@ if __name__ == "__main__":
         
         disc_pom_output=output[0,0,:,:]
         disc_contours_output = measure.find_contours(disc_pom_output)
-        numpyData = {"array": disc_contours_output}
-        encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-        with open(dir_pom+'/' + name_of_img + "_disc_contours_output.json", "w") as fp:
-                json.dump(encodedNumpyData, fp)
-                print("Done writing JSON data into .json file")
+        if ZAPISOVAT:
+            numpyData = {"array": disc_contours_output}
+            encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+            with open(dir_pom+'/' + name_of_img + "_disc_contours_output.json", "w") as fp:
+                    json.dump(encodedNumpyData, fp)
+                    print("Done writing JSON data into .json file")
         
         # Kontura GT dat
         disc_pom_lbl=lbl[0,0,:,:]
         disc_contours_lbl = measure.find_contours(disc_pom_lbl)
-        numpyData = {"array": disc_contours_lbl}
-        encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-        with open(dir_pom+'/' + name_of_img + "_disc_contours_lbl.json", "w") as fp:
-                json.dump(encodedNumpyData, fp)
-                print("Done writing JSON data into .json file")
+        if ZAPISOVAT:
+            numpyData = {"array": disc_contours_lbl}
+            encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+            with open(dir_pom+'/' + name_of_img + "_disc_contours_lbl.json", "w") as fp:
+                    json.dump(encodedNumpyData, fp)
+                    print("Done writing JSON data into .json file")
         
         # Cup
         # Kontura výstupu sítě    
         
         cup_pom_output=output[0,1,:,:]
         cup_contours_output = measure.find_contours(cup_pom_output)
-        numpyData = {"array": cup_contours_output}
-        encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-        with open(dir_pom+'/' + name_of_img + "_cup_contours_output.json", "w") as fp:
-                json.dump(encodedNumpyData, fp)
-                print("Done writing JSON data into .json file")
+        if ZAPISOVAT:
+            numpyData = {"array": cup_contours_output}
+            encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+            with open(dir_pom+'/' + name_of_img + "_cup_contours_output.json", "w") as fp:
+                    json.dump(encodedNumpyData, fp)
+                    print("Done writing JSON data into .json file")
         
         # Kontura GT dat
         cup_pom_lbl=lbl[0,1,:,:]
         cup_contours_lbl = measure.find_contours(cup_pom_lbl)
-        numpyData = {"array": cup_contours_lbl}
-        encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-        with open(dir_pom+'/' + name_of_img + "_cup_contours_lbl.json", "w") as fp:
-                json.dump(encodedNumpyData, fp)
-                print("Done writing JSON data into .json file")
+        if ZAPISOVAT:
+            numpyData = {"array": cup_contours_lbl}
+            encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+            with open(dir_pom+'/' + name_of_img + "_cup_contours_lbl.json", "w") as fp:
+                    json.dump(encodedNumpyData, fp)
+                    print("Done writing JSON data into .json file")
         
         
         
@@ -201,9 +223,11 @@ if __name__ == "__main__":
             plt.plot(contour[:, 1], contour[:, 0], linewidth=2) 
         plt.title('Cup - Output of net')  
         
-        plt.savefig(dir_pom+'/' + name_of_img +"_kontury.png")
-        plt.savefig(path_to_extracted_data+'/Train_kontury/' + name_of_img +"_kontury.png")
-        
+        if ZAPISOVAT:
+            plt.savefig(dir_pom+'/' + name_of_img +"_kontury.png")
+            
+        if ZAPISOVAT_KONTURY:
+            plt.savefig(path_to_extracted_data+'/Train_kontury/' + name_of_img +"_kontury.png")        
         
         plt.show()
         
@@ -218,7 +242,7 @@ if __name__ == "__main__":
          
          lbl=lbl.detach().cpu().numpy()
          
-         test_files_name_tmp=train_files_name[kk][103:]
+         test_files_name_tmp=test_files_name[kk][97:]
          name_of_img=test_files_name_tmp[:-4]
          
          dir_pom=path_to_extracted_data+"Test/"+name_of_img
@@ -258,9 +282,11 @@ if __name__ == "__main__":
          output_mask_cup[x_start:x_start+output_size[0],y_start:y_start+output_size[0]]=output[0,1,:,:]
          output_mask_cup=output_mask_cup.astype(bool)  
                     
+         # Postprocesing 
+         
+         output_final=Postprocesing(output[0,0,:,:],min_size_of_optic_disk,type_of_morphing,size_of_disk_for_morphing,ploting)
                     
-         output_final=Postprocesing(output[0,0,:,:],min_size_of_disk,size_of_disk_for_erosion,ploting)
-                    
+         
          output_mask_disc_final[x_start:x_start+output_size[0],y_start:y_start+output_size[0]]=output_final
          output_mask_disc_final=output_mask_disc_final.astype(bool)
                     
@@ -318,22 +344,23 @@ if __name__ == "__main__":
          plt.subplot(3,4,11)                       
          plt.imshow(output[0,1,:,:]) 
          plt.title('Output of net - cup')    
-
-         plt.savefig(dir_pom+'/' + name_of_img +"_vysledek.png")                  
-                        
+         
+         if ZAPISOVAT:
+             plt.savefig(dir_pom+'/' + name_of_img +"_vysledek.png")                  
+                           
          plt.show() 
          
-         
-         # Uložení masek ze segmentace
-         # Disc
-         imsave(dir_pom+'/' + name_of_img +"_Disc_all.png",img_as_uint(output_mask_disc))
-         imsave(dir_pom+'/' + name_of_img +"_Disc_all_postprocesing.png",img_as_uint(output_mask_disc_final))
-         
-         imsave(dir_pom+'/' + name_of_img +"_Disc_vyrez.png",img_as_uint(output[0,0,:,:]))
-         imsave(dir_pom+'/' + name_of_img +"_Disc_vyrez_postprocesing.png",img_as_uint(output_final))
-         
-         # Cup
-         imsave(dir_pom+'/' + name_of_img +"_Cup_vyrez.png",img_as_uint(output[0,1,:,:]))
+         if ZAPISOVAT:
+             # Uložení masek ze segmentace
+             # Disc
+             imsave(dir_pom+'/' + name_of_img +"_Disc_all.png",img_as_uint(output_mask_disc))
+             imsave(dir_pom+'/' + name_of_img +"_Disc_all_postprocesing.png",img_as_uint(output_mask_disc_final))
+             
+             imsave(dir_pom+'/' + name_of_img +"_Disc_vyrez.png",img_as_uint(output[0,0,:,:]))
+             imsave(dir_pom+'/' + name_of_img +"_Disc_vyrez_postprocesing.png",img_as_uint(output_final))
+             
+             # Cup
+             imsave(dir_pom+'/' + name_of_img +"_Cup_vyrez.png",img_as_uint(output[0,1,:,:]))
          
          
          # Vytvoření a uložení kontur
@@ -345,48 +372,53 @@ if __name__ == "__main__":
          
          disc_pom_output=output[0,0,:,:]
          disc_contours_output = measure.find_contours(disc_pom_output)
-         numpyData = {"array": disc_contours_output}
-         encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-         with open(dir_pom+'/' + name_of_img + "_disc_contours_output.json", "w") as fp:
-             json.dump(encodedNumpyData, fp)
-             print("Done writing JSON data into .json file")
+         if ZAPISOVAT:
+             numpyData = {"array": disc_contours_output}
+             encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+             with open(dir_pom+'/' + name_of_img + "_disc_contours_output.json", "w") as fp:
+                 json.dump(encodedNumpyData, fp)
+                 print("Done writing JSON data into .json file")
              
          disc_pom_output_postprocesing=output_final
          disc_contours_output_postprocesing = measure.find_contours(disc_pom_output_postprocesing)
-         numpyData = {"array": disc_contours_output}
-         encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-         with open(dir_pom+'/' + name_of_img + "_disc_pom_output_postprocesing.json", "w") as fp:
-             json.dump(encodedNumpyData, fp)
-             print("Done writing JSON data into .json file")
+         if ZAPISOVAT:
+             numpyData = {"array": disc_contours_output}
+             encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+             with open(dir_pom+'/' + name_of_img + "_disc_pom_output_postprocesing.json", "w") as fp:
+                 json.dump(encodedNumpyData, fp)
+                 print("Done writing JSON data into .json file")
              
          # Kontura GT dat
          disc_pom_lbl=lbl[0,0,:,:]
          disc_contours_lbl = measure.find_contours(disc_pom_lbl)
-         numpyData = {"array": disc_contours_lbl}
-         encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-         with open(dir_pom+'/' + name_of_img + "_disc_contours_lbl.json", "w") as fp:
-             json.dump(encodedNumpyData, fp)
-             print("Done writing JSON data into .json file")
+         if ZAPISOVAT:
+             numpyData = {"array": disc_contours_lbl}
+             encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+             with open(dir_pom+'/' + name_of_img + "_disc_contours_lbl.json", "w") as fp:
+                 json.dump(encodedNumpyData, fp)
+                 print("Done writing JSON data into .json file")
     
          # Cup
          # Kontura výstupu sítě    
         
          cup_pom_output=output[0,1,:,:]
          cup_contours_output = measure.find_contours(cup_pom_output)
-         numpyData = {"array": cup_contours_output}
-         encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-         with open(dir_pom+'/' + name_of_img + "_cup_contours_output.json", "w") as fp:
-             json.dump(encodedNumpyData, fp)
-             print("Done writing JSON data into .json file")
+         if ZAPISOVAT:
+             numpyData = {"array": cup_contours_output}
+             encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+             with open(dir_pom+'/' + name_of_img + "_cup_contours_output.json", "w") as fp:
+                 json.dump(encodedNumpyData, fp)
+                 print("Done writing JSON data into .json file")
         
          # Kontura GT dat
          cup_pom_lbl=lbl[0,1,:,:]
          cup_contours_lbl = measure.find_contours(cup_pom_lbl)
-         numpyData = {"array": cup_contours_lbl}
-         encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-         with open(dir_pom+'/' + name_of_img + "_cup_contours_lbl.json", "w") as fp:
-             json.dump(encodedNumpyData, fp)
-             print("Done writing JSON data into .json file")
+         if ZAPISOVAT:
+             numpyData = {"array": cup_contours_lbl}
+             encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
+             with open(dir_pom+'/' + name_of_img + "_cup_contours_lbl.json", "w") as fp:
+                 json.dump(encodedNumpyData, fp)
+                 print("Done writing JSON data into .json file")
          
             
          plt.figure(figsize=[15,15])
@@ -421,10 +453,13 @@ if __name__ == "__main__":
          for contour in cup_contours_output:
              plt.plot(contour[:, 1], contour[:, 0], linewidth=2) 
          plt.title('Cup - Output of net')  
-        
-         plt.savefig(dir_pom+'/' + name_of_img +"_kontury.png")
-         plt.savefig(path_to_extracted_data+'/Test_kontury/' + name_of_img +"_kontury.png")
-        
+         
+         if ZAPISOVAT:
+             plt.savefig(dir_pom+'/' + name_of_img +"_kontury.png")
+             
+         if ZAPISOVAT_KONTURY:
+             plt.savefig(path_to_extracted_data+'/Test_kontury/' + name_of_img +"_kontury.png")
+             
          plt.show()
     
     
