@@ -32,8 +32,8 @@ if __name__ == "__main__":
     output_size=(int(288),int(288),int(3))
     #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500"
     #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_640_640_55px_all_database"
-    #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_320_320_25px/Data_320_320_25px_all_database"
-    path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px_preprocesing_all_database"
+    path_to_data="D:\Diploma_thesis_segmentation_disc/Data_320_320_25px/Data_320_320_25px_all_database"
+
     
     
 
@@ -571,7 +571,7 @@ if __name__ == "__main__":
             plt.show() 
             
     #torch.save(net, 'model_01.pth')
-    torch.save(net.state_dict(), 'model_01_RGB_disc_cup_25px_all_modified_databases.pth')
+    torch.save(net.state_dict(), 'model_01_RGB_disc_cup_25px_all_databases.pth')
     
         
     

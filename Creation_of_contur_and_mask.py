@@ -38,20 +38,12 @@ if __name__ == "__main__":
     
     output_size=(int(288),int(288),int(3))
     #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_500_500"
-    #path_to_data="D:\Diploma_thesis_segmentation_disc/Data_320_320_25px/Data_320_320_25px_all_database"
-    #path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px\Data_320_320_25px_UBMI_mereni"
-    
-    # Normalizace
-    #path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px_preprocesing_UBMI_mereni"
-    path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px_preprocesing_all_database"
-    
-    
-    
-    path_to_extracted_data=path_to_data+ "/Results_closing_opening_40/"
-    
+    path_to_data="D:\Diploma_thesis_segmentation_disc/Data_320_320_25px/Data_320_320_25px_all_database"
     
     #mereni UBMI
     #path_to_data="D:\Diploma_thesis_segmentation_disc\Data_320_320_25px\Data_320_320_25px_UBMI_mereni"
+      
+    path_to_extracted_data=path_to_data+ "/Results_closing_opening_40/"
     
     #Postsprocesing parameters
     min_size_of_optic_disk=1000
@@ -74,14 +66,9 @@ if __name__ == "__main__":
     
     #net = Unet().cuda()   
     net=Unet(out_size=2).cuda()  
-    #net.load_state_dict(torch.load(path_to_data + '/Naucene_modely/disc_and_cup_detection_25px_all_databases/model_01_RGB_detection_disc_cup_25px_all_databases.pth'))
-    net.load_state_dict(torch.load(path_to_data + '/Naucene_modely/disc_and_cup_detection_25px_all_databases/model_01_RGB_disc_cup_25px_all_modified_databases.pth'))
-    
+    net.load_state_dict(torch.load(path_to_data + '/Naucene_modely/disc_and_cup_detection_25px_all_databases/model_01_RGB_detection_disc_cup_25px_all_databases.pth'))
     net.eval()
-    
-    
-    
-    
+
     for k,(data,lbl) in enumerate(trainloader):
         data=data.cuda()
         lbl=lbl.cuda()
